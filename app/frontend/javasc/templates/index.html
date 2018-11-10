@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <style>
+    form.padding2 {
+      float: left;
+      margin-left: 120px;
+    }
+    div.clear{
+      clear : both;
+    }
+.collapsible {
+  background-color: #777;
+  color: white;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+}
+
+.active, .collapsible:hover {
+  background-color: #555;
+}
+
+.content {
+  padding: 0 18px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  background-color: #f1f1f1;
+}
+</style>
+
+    <meta charset="utf-8">
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Travel NYUAD</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{{ url_for('static', filename='portfolio-item.css') }}" rel="stylesheet">
+
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+
+    <link href="{{ url_for('static', filename='jqvmap.css') }}" media="screen" rel="stylesheet" type="text/css"/>
+
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery.vmap.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery.vmap.world.js') }}" charset="utf-8"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery.vmap.sampledata.js') }}"></script>
+
+    <script>
+      jQuery(document).ready(function () {
+        jQuery('#vmap').vectorMap({
+          map: 'world_en',
+          backgroundColor: '#333333',
+          color: '#ffffff',
+          hoverOpacity: 0.7,
+          selectedColor: '#666666',
+          enableZoom: true,
+          showTooltip: true,
+          scaleColors: ['#C8EEFF', '#006491'],
+          values: sample_data,
+          normalizeFunction: 'polynomial',
+          onRegionClick: function(element, code, region)
+    {
+        var oldurl = window.location.href;
+        var pos = oldurl.search("country=");
+        if (pos>-1){
+          oldurl=oldurl.substring(0,pos-1) + oldurl.substring(pos+10,oldurl.length);
+        }
+        var newurl =  oldurl + "&country=" + code;
+        window.location.href=newurl;
+
+    }
+
+        });
+
+      });
+
+    </script>
+
+  </head>
+
+  <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="#">Travel NYUAD</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+          <!-- <ul class="navbar-nav ml-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Home
+                <span class="sr-only">(current)</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Services</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Contact</a>
+            </li>
+          </ul> -->
+        </div>
+      </div>
+    </nav>
+{% block container %}
+    <!-- Page Content -->
+    <div class="container">
+
+      <!-- Portfolio Item Heading -->
+      <h1 class="my-4">NYUAD Travel Guide
+        <small></small>
+      </h1>
+
+      <!-- Portfolio Item Row -->
+      <div class="row">
+{% endblock %}
+<div id="vmap" style="width: 600px; height: 400px;"></div>
+
+<div id="map-canvas"></div>
+
+        <div class="col-md-4">
+          <h3 class="my-3">Where do Global Leaders Go?</h3>
+          {%if country_selected == True%}
+          <h4 class="my-3"> {{(all_countries[(country.upper())]).split(',')[0].title()}} </h4><h6>Your budget: {{budget}} AED</h6>
+          {%else%}
+          Please fill out your preferences and then select a country!
+          {%endif%}
+          {% if data %}
+          <div style="height:300px;width:700px;border:1px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;">
+
+          <ul>
+            <br>
+            {% if counter != 0 and country_selected == True %}
+            <p>Check out these recommendations in {{(all_countries[(country.upper())]).split(',')[0].title()}} that agree with your budget! </p>
+            {% endif %}
+            {% if counter == 0%}
+            <p> We couldn't find recommendations matching your budget in {{(all_countries[(country.upper())]).split(',')[0].title()}}, but here's some helpful advice you should check out nonetheless!</p>
+            {% endif %}
+          {% for entry in data%}
+          {%if entry['budget'] <= budget%}
+            <li>
+              <button class="collapsible">Budget: {{entry['budget']}} AED, Check out our advice on: {{advice_types[data.index(entry)]}} </button>
+              <div class="content">
+                <p>Flights (AED): {{entry['flight']}}<br>
+                  Good to know: {{entry['when_there']}}<br>
+                  <a>Book their flight!</a>
+                  <a>Book their hotel!</a>
+                </p>
+              </div>
+            </li>
+              {%endif%}
+          {% endfor %}
+          <br>
+          {% if data|length != counter and counter !=0 %}
+          <p>Don't miss out on these great recommendations for a trip to {{(all_countries[(country.upper())]).split(',')[0].title()}} from people with slightly higher budgets!</p>
+          {% endif %}
+          {% for entry in data %}
+          {% if entry['budget'] > budget%}
+          <li>
+            <button class="collapsible">Budget: {{entry['budget']}} AED, Check out our advice on: {{advice_types[data.index(entry)]}} </button>
+            <div class="content">
+              <p>Flights (AED): {{entry['flight']}}<br>
+                Good to know: {{entry['when_there']}}<br>
+                <a>Book my flight!</a><br>
+                <a>Book my hotel!</a>
+              </p>
+            </div>
+          </li>
+          {% endif%}
+          {%endfor%}
+          </ul>
+          </div>
+          {% else %}
+          {% if country_selected == True%}
+          <h5>Oops! We don't have information about {{(all_countries[(country.upper())]).split(',')[0].title()}} at the moment!</h5>
+          {%endif%}
+          {%endif%}
+          </div>
+
+
+      </div>
+      <!-- /.row -->
+      <br><br>
+      <div class="row">
+      <form method="get">
+    <div>
+      <label for="budget">Your estimated budget: </label>
+      <input name="budget" id="budget" value=""> AED
+    </div>
+
+    <div>
+      <label for="myForm">When do you want to travel?</label>
+      <br />
+<form id="myForm">
+      <input type="radio" name="break" value="Spring"/>Spring break <br/>
+      <input type="radio" name="break" value="Fall"/>Fall break <br/>
+      <hr/>
+
+      <label for="budget">Do you have any 7 Week Courses?</label>
+      <br />
+<form id="myForm">
+      <input type="radio" name="numberOfDays" value=14 />No <br/>
+      <input type="radio" name="numberOfDays" value=7 />Yes <br/>
+      <hr/>
+
+      <button "border-radius:20px;">Submit</button>
+    </div>
+
+
+  </form>
+  <form class=padding2>
+      <div>
+        <h3> Do you have any recommendations? </h3>
+      <label for="dest">Which country did you travel to?</label>
+      <input name="dest" id="dest" value="">
+      </div>
+
+      <div>
+      <label for="money">What was your budget?</label>
+      <input name="money" id="money" value=""> AED
+      </div>
+      <div>
+      <label for="flights">How much did your flight cost? </label>
+      <input name="flights" id="flights" value=""> AED
+      </div>
+      <div>
+      <label for="hotel">Info about your accomodation:</label>
+      <input name="hotel" id="hotel" value="">
+      </div>
+
+      <div>
+      <label for="visa">Any visa advice?</label>
+      <input name="visa" id="visa" value="">
+      </div>
+      <div>
+      <label for="advice">Your recommendation:</label>
+      <input name="advice" id="advice" value="">
+      </div>
+
+      <button border-radius:20px;>Submit</button>
+      </form>
+
+  </div>
+  <div class=clear>
+  </div>
+
+
+      <!-- Related Projects Row -->
+      <!-- <h3 class="my-4">Related Projects</h3> -->
+
+      <!-- <div class="row">
+
+        <div class="col-md-3 col-sm-6 mb-4">
+          <a href="#">
+            <img class="img-fluid" src="http://placehold.it/500x300" alt="">
+          </a>
+        </div>
+
+        <div class="col-md-3 col-sm-6 mb-4">
+          <a href="#">
+            <img class="img-fluid" src="http://placehold.it/500x300" alt="">
+          </a>
+        </div>
+
+        <div class="col-md-3 col-sm-6 mb-4">
+          <a href="#">
+            <img class="img-fluid" src="http://placehold.it/500x300" alt="">
+          </a>
+        </div>
+
+        <div class="col-md-3 col-sm-6 mb-4">
+          <a href="#">
+            <img class="img-fluid" src="http://placehold.it/500x300" alt="">
+          </a>
+        </div>
+
+      </div>
+      /.row -->
+
+    </div>
+    <!-- /.container -->
+<br><br><br><br>
+    <!-- Footer -->
+    <footer class="py-5 bg-dark">
+      <div class="container">
+        <p class="m-0 text-center text-white">Copyright &copy; im dead</p>
+      </div>
+      <!-- /.container -->
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- <script src="vendor/jquery/jquery.min.js"></script> -->
+    <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
+    <script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.maxHeight){
+      content.style.maxHeight = null;
+    } else {
+      content.style.maxHeight = content.scrollHeight + "px";
+    }
+  });
+}
+</script>
+  </body>
+
+</html>
